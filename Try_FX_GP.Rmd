@@ -1,0 +1,54 @@
+---
+title: "FX prediction with Gaussian Process"
+author: "ynakahashi"
+date: "2019/1/11"
+output: html_document
+---
+
+### Load libraries
+```{r}
+library(ggplot2)
+library(rstan)
+rstan_options(auto_write = TRUE)
+options(mc.cores=parallel::detectCores())
+```
+
+### Read data
+```{r}
+set.seed(123)
+N <- 20
+x <- runif(N, -5, 5)
+y <- sin(x) + rnorm(N, 0, 0.01)
+```
+
+```{r}
+N2 <- 75
+x2 <- seq(-5, 5, length= N2)
+```
+
+### Run stan
+```{r}
+dat <- list(N = N, x = x, y = y, N2 = N2, x2 = x2)
+fit <- stan(file = "Try_FX_GP.stan", data = dat, seed =123,
+            chain = 3, iter = 2000, warmup = 500)
+```
+
+### Visualization
+```{r}
+A <- extract(fit)
+
+y2_med <- apply(A$y2, 2, median)
+y2_max <- apply(A$y2, 2, quantile, probs = 0.05)
+y2_min <- apply(A$y2, 2, quantile, probs = 0.95)
+
+dat_g <- data.frame(x2, y2_med, y2_max, y2_min)
+dat_g2 <- data.frame(x, y)
+
+ggplot(dat_g, aes(x2, y2_med))+
+  theme_classic()+
+  geom_ribbon(aes(ymax = y2_max, ymin = y2_min), alpha = 0.2)+
+  geom_line()+
+  geom_point(data = dat_g2, aes(x, y))+
+  xlab("x") + ylab("y")
+```
+
