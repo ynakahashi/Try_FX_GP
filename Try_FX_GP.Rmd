@@ -7,7 +7,6 @@ output: html_document
 
 ### Load libraries
 ```{r}
-library(ggplot2)
 library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores=parallel::detectCores())
@@ -50,5 +49,44 @@ ggplot(dat_g, aes(x2, y2_med))+
   geom_line()+
   geom_point(data = dat_g2, aes(x, y))+
   xlab("x") + ylab("y")
+```
+
+
+### 実際に
+```{r}
+d <- read.csv("quote.csv")
+head(d)
+d <- head(d, 100)
+```
+
+
+```{r}
+d$Date <- as.Date(d$Date)
+head(d)
+```
+
+```{r}
+diff <- as.numeric(d$Date[1:(nrow(d)-1)] - d$Date[2:nrow(d)])
+MASS::truehist(diff)
+```
+
+```{r}
+n <- nrow(d)
+n
+```
+```{r}
+d$ID <- 1:nrow(d)
+```
+
+```{r}
+n_n <- 10
+d_n <- tail(d, n_n)
+```
+
+
+```{r}
+dat <- list(N = n, x = d$ID, y = d$USD, N2 = n_n, x2 = d_n$ID)
+fit <- stan(file = "Try_FX_GP_q.stan", data = dat, seed = 123,
+            chain = 3, iter = 2000, warmup = 500)
 ```
 
