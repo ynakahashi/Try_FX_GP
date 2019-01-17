@@ -56,7 +56,7 @@ ggplot(dat_g, aes(x2, y2_med))+
 ```{r}
 d <- read.csv("quote.csv")
 head(d)
-d <- head(d, 100)
+d <- tail(d, 100)
 ```
 
 
@@ -79,14 +79,33 @@ d$ID <- 1:nrow(d)
 ```
 
 ```{r}
-n_n <- 10
+n_p <- 50
+n_n <- 50
+d_p <- head(d, n_p)
 d_n <- tail(d, n_n)
 ```
 
 
 ```{r}
-dat <- list(N = n, x = d$ID, y = d$USD, N2 = n_n, x2 = d_n$ID)
+dat <- list(N = n_p, x = d_p$ID, y = d_p$USD, N2 = n_n, x2 = d_n$ID)
 fit <- stan(file = "Try_FX_GP_q.stan", data = dat, seed = 123,
-            chain = 3, iter = 2000, warmup = 500)
+            chain = 3, iter = 1000, warmup = 200)
 ```
 
+```{r}
+A <- extract(fit)
+
+y2_med <- apply(A$y2, 2, median)
+y2_max <- apply(A$y2, 2, quantile, probs = 0.05)
+y2_min <- apply(A$y2, 2, quantile, probs = 0.95)
+
+dat_g <- data.frame(d_n$ID, y2_med, y2_max, y2_min)
+dat_g2 <- data.frame(d_p$ID, d_p$USD)
+
+ggplot(dat_g, aes(d_n$ID, y2_med)) +
+  theme_classic() +
+  geom_ribbon(aes(ymax = y2_max, ymin = y2_min), alpha = 0.2) +
+  geom_line() +
+  geom_point(data = dat_g2, aes(d_p$ID, d_p$USD)) +
+  xlab("x") + ylab("y")
+```
