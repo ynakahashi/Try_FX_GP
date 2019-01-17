@@ -1,0 +1,71 @@
+---
+title: "Check daily data forecasting"
+author: "ynakahashi"
+date: "2019/1/17"
+output: html_document
+---
+
+### Load libraries
+```{r}
+library(tidyverse)
+```
+
+### Read data
+```{r}
+d <- read.csv("./data/USDJPY.csv") %>% 
+   # mutate(date = as.Date(.$date)) %>% 
+   mutate(year = lubridate::year(.$date)) %>% 
+   mutate(md = paste0(
+      str_pad(lubridate::month(.$date), 2, pad = 0), "-", 
+      str_pad(lubridate::day(.$date), 2, pad = 0))) %>% 
+   mutate(year_fac = as.factor(.$year))
+```
+
+#### とりあえずplot
+```{r}
+plot(d$value, type = "l")
+```
+
+
+```{r}
+d_09 <- 
+   d %>% filter(year > 2009)
+```
+
+
+### 
+```{r}
+ggplot(d_09, aes(x = md, y = value, group = year_fac)) +
+   geom_line(aes(colour = year_fac)) +
+   # scale_x_date(labels = scales::date_format("%m%d")) +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+   NULL
+   
+```
+
+
+
+
+
+```{r}
+y <- ts(d$USD, frequency = 7)
+```
+
+```{r}
+plot(y)
+```
+
+
+```{r}
+fit <- ets(y)
+fc <- forecast(fit)
+plot(fc)
+```
+
+```{r}
+y <- msts(x, seasonal.periods = c(7, 365.25))
+fit <- tbats(y)
+fc <- forecast(fit)
+plot(fc)
+```
+
