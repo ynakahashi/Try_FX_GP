@@ -21,12 +21,28 @@ d <- read.csv("./data/USDJPY.csv") %>%
    mutate(year_fac = as.factor(.$year))
 ```
 
+#### 毎日データが取れているか
+```{r}
+n <- nrow(d)
+lag_d <- d$value[2:n] - d$value[1:(n-1)]
+MASS::truehist(lag_d)
+```
+
+
+
+
+
+
+
+
+
 #### とりあえずplot
 ```{r}
 plot(d$value, type = "l")
 ```
 
 
+### 2009年以降に限定する
 ```{r}
 d_09 <- 
    d %>% filter(year > 2009)
